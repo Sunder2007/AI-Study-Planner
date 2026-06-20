@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+date_default_timezone_set('Asia/Kolkata');
+
 if(!isset($_SESSION['email']))
 {
     header("Location: index.php");
@@ -57,6 +59,19 @@ else
 }
 $completedPercent = $progress;
 $remainingPercent = 100 - $progress;
+
+if($progress < 40)
+{
+    $progressColor = "bg-danger";
+}
+elseif($progress < 70)
+{
+    $progressColor = "bg-warning";
+}
+else
+{
+    $progressColor = "bg-success";
+}
 
 if($progress == 0)
 {
@@ -252,7 +267,13 @@ if($todayHours < $dailyGoal)
 <!DOCTYPE html>
 <html>
 <head>
-<title>AI Study Planner Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+<title>🤖 AI Study Planner </title>
+
+<link rel="icon"
+href="https://cdn-icons-png.flaticon.com/512/3135/3135755.png">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -272,6 +293,7 @@ body{
 
 .card:hover{
     transform:translateY(-5px);
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
 }
 
 canvas{
@@ -293,8 +315,8 @@ h3,h4{
 <nav class="navbar navbar-dark bg-primary">
 <div class="container">
 
-<a class="navbar-brand" href="#">
-AI Study Planner
+<a class="navbar-brand fw-bold" href="#">
+🤖 AI Study Planner 
 </a>
 
 <button onclick="toggleDarkMode()" class="btn btn-dark me-2">
@@ -308,15 +330,51 @@ Logout
 </div>
 </nav>
 
-<div class="container mt-5">
+<div class="container-fluid px-5 mt-5">
+
+<?php
+
+$hour = date("H");
+
+if($hour >= 5 && $hour < 12)
+{
+    $greeting = "🌅 Good Morning";
+}
+elseif($hour >= 12 && $hour < 17)
+{
+    $greeting = "☀️ Good Afternoon";
+}
+elseif($hour >= 17 && $hour < 21)
+{
+    $greeting = "🌇 Good Evening";
+}
+else
+{
+    $greeting = "🌙 Good Night";
+}
+
+
+?>
+
 
 <h2 class="fw-bold">
-👋 Welcome, <?php echo $_SESSION['name']; ?>
+<?php echo $greeting; ?>,
+<?php echo $_SESSION['name']; ?>
 </h2>
+
 <div class="card mt-4">
     <div class="card-body">
 
         <h4>👤 Student Profile</h4>
+
+          <div class="text-center mb-3">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+style="
+width:120px;
+border-radius:50%;
+box-shadow:0 0 25px #0d6efd;
+">
+</div>
 
         <p><b>Full Name:</b> <?php echo $_SESSION['name']; ?></p>
 
@@ -328,10 +386,41 @@ Logout
 
     </div>
 </div>
+
 <p>
 Logged in as:
 <b><?php echo $_SESSION['email']; ?></b>
 </p>
+
+<div class="card mt-3 bg-primary text-white">
+    <div class="card-body text-center">
+
+
+        <h2>🤖 AI Study Planner </h2>
+        <p class="mt-2">
+🎯 Goal: Crack Exams With Smart Planning
+</p>
+<p>
+📈 Track Progress • 📚 Manage Subjects • 📝 Exam Preparation
+</p>
+
+        <h4>
+            📚 <?php echo $totalSubjects; ?> Subjects |
+            📅 <?php echo $totalPlans; ?> Plans |
+            🎯 <?php echo $progress; ?>% Progress
+        </h4>
+
+        <h5>
+📅 <?php echo date("d M Y"); ?>
+</h5>
+
+<h5 id="clock"></h5>
+
+    </div>
+</div>
+
+
+
 
 <a href="dashboard.php" class="btn btn-warning btn-sm me-2">
 🏠 Dashboard
@@ -353,11 +442,80 @@ Logged in as:
 Exam Timetable
 </a>
 
+<div class="card mt-4">
+<div class="card-body text-center">
+
+<h4>⚡ Quick Actions</h4>
+
+
+
+<a href="subjects.php" class="btn btn-primary m-2">
+➕ Add Subject
+</a>
+
+<a href="planner.php" class="btn btn-success m-2">
+📅 Add Study Plan
+</a>
+
+<a href="progress.php" class="btn btn-warning m-2">
+📈 Update Progress
+</a>
+
+<a href="exam.php" class="btn btn-danger m-2">
+📝 Add Exam
+</a>
+
+<a href="certificate.php" class="btn btn-success">
+🎓 Generate Certificate
+</a>
+
+<div class="card mt-4">
+<div class="card-body">
+
+<h4>🤖 AI Study Assistant</h4>
+
+<input type="text"
+class="form-control"
+id="userQuestion"
+placeholder="Ask study related question...">
+
+<button class="btn btn-primary mt-2"
+onclick="askAI()">
+Ask AI
+</button>
+
+<div id="aiAnswer" class="alert alert-info mt-3">
+AI response will appear here...
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body text-center">
+
+        <h4>🎯 Current Goal</h4>
+
+        <div class="alert alert-primary">
+
+            Complete all subjects before exam and maintain daily study streak.
+
+        </div>
+
+    </div>
+</div>
+
+
+
 <div class="row mt-4">
 
-<div class="col-md-3">    
-<div class="card text-center h-100 shadow border-0">
+<div class="col-md-3">
+<div class="card text-center h-100 shadow border-0 bg-primary text-white">
 <div class="card-body">
+<h2>📝</h2>    
 <h3><?php echo $totalSubjects; ?></h3>
 <p>Total Subjects</p>
 </div>
@@ -365,8 +523,9 @@ Exam Timetable
 </div>
 
 <div class="col-md-3">    
-<div class="card text-center h-100 shadow border-0">
+<div class="card text-center h-100 shadow border-0 bg-success text-white">
 <div class="card-body">
+<h2>📝</h2>    
 <h3><?php echo $totalPlans; ?></h3>
 <p>Study Plans</p>
 </div>
@@ -385,7 +544,7 @@ AND exam_date >= CURDATE()")
 ?>
 
 <div class="col-md-3">    
-<div class="card text-center h-100 shadow border-0">
+<div class="card text-center h-100 shadow border-0 bg-danger text-white">
 <div class="card-body text-center">
 
 <h2>📝</h2>
@@ -405,11 +564,13 @@ AND exam_date >= CURDATE()")
 <div class="card-body text-center">
 
 
-<h3><?php echo $progress; ?>%</h3>
+<h2 class="fw-bold text-primary">
+<?php echo $progress; ?>%
+</h2>
 <p>Progress</p>
 
 <div class="progress mt-3">
-<div class="progress-bar bg-success"
+<div class="progress-bar <?php echo $progressColor; ?>"
 role="progressbar"
 style="width: <?php echo $progress; ?>%">
 <?php echo $progress; ?>%
@@ -421,6 +582,31 @@ style="width: <?php echo $progress; ?>%">
 </div>
 
 </div>
+
+<div class="card mt-4">
+    <div class="card-body text-center">
+
+        <h4>💡 Quote of the Day</h4>
+
+        <div class="alert alert-success" id="quoteBox">
+    Loading Quote...
+</div>
+
+ <div class="card mt-3">
+    <div class="card-body text-center">
+
+        <h4>📚 Daily Study Tip</h4>
+
+        <div class="alert alert-info" id="tipBox">
+            Loading Tip...
+        </div>
+
+    </div>
+</div>
+
+    </div>
+</div>
+
 <div class="card mt-4">
     <div class="card-body">
 
@@ -455,6 +641,18 @@ style="width: <?php echo $progress; ?>%">
         <h2 class="text-primary">
     <?php echo $readinessScore; ?>/100
 </h2>
+
+<div class="progress mt-3">
+
+<div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+
+style="width: <?php echo $readinessScore; ?>%">
+
+<?php echo $readinessScore; ?>%
+
+</div>
+
+</div>
 
 
 
@@ -696,20 +894,42 @@ while($row4 = mysqli_fetch_assoc($result4))
 <h3 class="mt-5 text-primary">
 📊 Study Analytics Dashboard
 </h3>
-<h3 class="mt-5">🥧 Progress Distribution</h3>
+<div class="card mt-4">
+<div class="card-body">
 
+<div class="card mt-4" style="max-width:500px; margin:auto;">
+<div class="card-body text-center">
+
+<h4>🥧 Progress Distribution</h4>
+
+<div style="width:280px; height:280px; margin:auto;">
 <canvas id="pieChart"></canvas>
+</div>
 
-<h3 class="mt-5">Subject Wise Progress</h3>
+</div>
+</div>
+</div>
 
+</div>
+</div>
+
+<div class="card mt-4">
+<div class="card-body">
+
+<h3 class="text-primary">📊 Subject Wise Progress</h3>
+
+<div style="height:350px;">
 <canvas id="subjectChart"></canvas>
+</div>
+
+</div>
+</div>
 
 <h3 class="mt-5">📈 Progress Trend</h3>
 
 <canvas id="trendChart"></canvas>
 
 <canvas id="myChart"></canvas>
-
 </div>
 
 <script>
@@ -764,17 +984,39 @@ new Chart(trendCtx, {
         labels:
         <?php echo json_encode($trendDates); ?>,
 
-        datasets: [{
-            label: 'Study Hours',
-            data:
-            <?php echo json_encode($trendHours); ?>,
-            fill: false,
-            tension: 0.3
-        }]
+       datasets: [{
+    label: 'Study Hours',
+    data: <?php echo json_encode($trendHours); ?>,
+
+    borderColor: '#0d6efd',
+    backgroundColor: 'rgba(13,110,253,0.2)',
+
+    fill: true,
+    tension: 0.4,
+
+    pointRadius: 6,
+    pointHoverRadius: 8,
+
+    pointBackgroundColor: '#0d6efd',
+    pointBorderColor: '#ffffff',
+    pointBorderWidth: 2
+}]
     },
-    options: {
-        responsive: true
+   options: {
+    responsive: true,
+
+    plugins:{
+        legend:{
+            display:true
+        }
+    },
+
+    scales:{
+        y:{
+            beginAtZero:true
+        }
     }
+}
 });
 
 const pieCtx =
@@ -783,10 +1025,7 @@ document.getElementById('pieChart');
 new Chart(pieCtx, {
     type: 'pie',
     data: {
-        labels: [
-            'Completed',
-            'Remaining'
-        ],
+        labels: ['Completed','Remaining'],
         datasets: [{
             data: [
                 <?php echo $completedPercent; ?>,
@@ -795,7 +1034,8 @@ new Chart(pieCtx, {
         }]
     },
     options: {
-        responsive: true
+        responsive: true,
+        maintainAspectRatio: false
     }
 });
 
@@ -859,6 +1099,141 @@ window.onload = function()
 }
 
 </script>
+
+<footer class="bg-dark text-white text-center p-4 mt-5">
+
+<h4>🤖 AI Study Planner </h4>
+
+<p>
+Major Project | Diploma CSE
+</p>
+<footer class="bg-dark text-white text-center p-3 mt-5">
+© 2026 AI Study Planner | Developed By Sunder Kumar & Naveen Tripathi
+</footer> 
+
+
+
+<script>
+setInterval(function()
+{
+    document.getElementById("clock").innerHTML =
+    "🕒 " + new Date().toLocaleTimeString();
+},1000);
+</script>
+
+<script>
+
+const quotes = [
+
+"Success is the sum of small efforts repeated daily.",
+"Push yourself because no one else will do it for you.",
+"Dream big. Start small. Act now.",
+"Discipline beats motivation every time.",
+"Every day is a chance to improve yourself.",
+"Small progress is still progress.",
+"Study now, shine later.",
+"Your future is created by what you do today.",
+"Consistency is the key to success.",
+"Don't stop until you're proud.",
+"Hard work today creates success tomorrow.",
+"Stay focused and never give up.",
+"Learning never exhausts the mind.",
+"Winners are not afraid of failure.",
+"Believe in yourself and keep moving forward.",
+"The expert was once a beginner.",
+"Success starts with self-discipline.",
+"One chapter at a time, one step closer.",
+"Great things take time and patience.",
+"Your only limit is your determination."
+
+];
+
+let today = new Date();
+let dayNumber = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+
+let quoteIndex = dayNumber % quotes.length;
+
+document.getElementById("quoteBox").innerHTML =
+"💡 " + quotes[quoteIndex];
+
+const tips = [
+
+"Study for 25 minutes and take a 5 minute break.",
+"Revise yesterday's topics before learning new ones.",
+"Make short notes for quick revision.",
+"Practice previous year questions regularly.",
+"Keep your phone away while studying.",
+"Focus on one subject at a time.",
+"Use active recall instead of rereading.",
+"Teach what you learn to someone else.",
+"Set daily study goals.",
+"Maintain a fixed study schedule.",
+"Highlight only important points.",
+"Take handwritten notes.",
+"Use diagrams and flowcharts.",
+"Study difficult subjects first.",
+"Sleep at least 7 hours daily.",
+"Revise weekly to avoid forgetting.",
+"Practice coding every day.",
+"Attempt mock tests regularly.",
+"Track your daily progress.",
+"Consistency beats intensity."
+
+];
+
+let tipIndex = dayNumber % tips.length;
+
+document.getElementById("tipBox").innerHTML =
+"📖 " + tips[tipIndex];
+
+</script>
+
+<script>
+
+<?php if($progress >= 100){ ?>
+
+confetti({
+    particleCount: 200,
+    spread: 180,
+    origin: { y: 0.6 }
+});
+
+<?php } ?>
+
+</script>
+
+<script>
+
+function askAI()
+{
+let question =
+document.getElementById("userQuestion").value;
+
+let answer="";
+
+if(question.includes("java"))
+{
+answer="📘 Focus on JDBC, Servlet and JSP.";
+}
+else if(question.includes("dbms"))
+{
+answer="🗄️ Revise Normalization and SQL Queries.";
+}
+else if(question.includes("cloud"))
+{
+answer="☁️ Learn IaaS, PaaS and SaaS.";
+}
+else
+{
+answer="📚 Keep studying regularly and revise daily.";
+}
+
+document.getElementById("aiAnswer").innerHTML=answer;
+}
+
+</script>
+
+
 
 </body>
 </html>
